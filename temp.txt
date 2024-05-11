@@ -1,22 +1,2 @@
-#include "myheader.h"
-int main(int argc, char *argv[])
-      char *cptr;
-      int *outptr, *inptr, *counter;
-              perror ("Failed to create shared memory segment");
-      if ((cptr =(char *)shmat(id, NULL, 0)) == (void *)-1) {
-              perror ("Failed to attach shared memory segment");
-          inptr = (int *)(cptr);
-          outptr = (int *)(cptr + 4);
-          counter = (int *)(cptr + 8);
-          students = (student *)(cptr + 12);
-          *counter = 0;
-              while ((*counter) == BUFSIZE); // do nothing
-              scanf ("%d", &students[*inptr].SID);
-              scanf ("%s" , students[*inptr].name);
-              *counter = (*counter) + 1;
-OS_LAB
-Task: 11
-Date: 19-10-2023
-chmode: prx-rwx-rwx
-tar: named_pipe of NUMA
-Name: Aoun-Haider
+i:0 processes:392066 i:0 processes:392067 Parent: 368533 Child: 392067
+Parent: 392066 Child: 0
