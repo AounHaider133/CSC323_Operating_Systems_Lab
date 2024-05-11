@@ -1,63 +1,29 @@
-# This script is created by NSG2 beta1
-# <http://wushoupong.googlepages.com/nsg>
-
-#===================================
-#     Simulation parameters setup
-#===================================
-set val(stop)   10.0                         ;# time of simulation end
-
-#===================================
-#        Initialization        
-#===================================
-#Create a ns simulator
+# Create a simulator object
 set ns [new Simulator]
 
-#Open the NS trace file
-set tracefile [open out.tr w]
-$ns trace-all $tracefile
-
-#Open the NAM trace file
-set namfile [open out.nam w]
-$ns namtrace-all $namfile
-
-#===================================
-#        Nodes Definition        
-#===================================
-#Create 2 nodes
-set n0 [$ns node]
+# Create two nodes
 set n1 [$ns node]
+set n2 [$ns node]
 
-#===================================
-#        Links Definition        
-#===================================
-#Createlinks between nodes
-$ns duplex-link $n0 $n1 100.0Mb 10ms DropTail
-$ns queue-limit $n0 $n1 50
+# Create a link between nodes
+$ns duplex-link $n1 $n2 10Mb 10ms DropTail
 
-#Give node position (for NAM)
-$ns duplex-link-op $n0 $n1 orient right
+# Create a TCP traffic source at node 1
+set tcp [new Agent/TCP]
+set ftp [new Application/Traffic/FTP]
+$ftp attach-agent $tcp
+$ns attach-agent $n1 $tcp
 
-#===================================
-#        Agents Definition        
-#===================================
+# Create a TCP traffic sink at node 2
+set null [new Agent/Null]
+$ns attach-agent $n2 $null
 
-#===================================
-#        Applications Definition        
-#===================================
+# Connect the traffic source to the sink
+$ns connect $tcp $null
 
-#===================================
-#        Termination        
-#===================================
-#Define a 'finish' procedure
-proc finish {} {
-    global ns tracefile namfile
-    $ns flush-trace
-    close $tracefile
-    close $namfile
-    exec nam out.nam &
-    exit 0
-}
-$ns at $val(stop) "$ns nam-end-wireless $val(stop)"
-$ns at $val(stop) "finish"
-$ns at $val(stop) "puts \"done\" ; $ns halt"
+# Set simulation end time
+$ns at 5.0 "$ns stop"
+
+# Run the simulation
 $ns run
+
