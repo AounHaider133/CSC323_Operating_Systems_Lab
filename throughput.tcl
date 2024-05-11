@@ -1,0 +1,108 @@
+#Create a simulator object
+set ns [new Simulator]
+
+#Open the output files
+set f0 [open f0.tr w]
+set f1 [open f1.tr w]
+
+#Create 10 nodes
+for {set i 0} {$i < 10} {incr i} {
+   set n($i) [$ns node]
+   $n($i) set X [expr $i * 150]
+}
+
+#Connect the nodes
+for {set i 0} {$i < 9} {incr i} {
+ $ns duplex-link $n($i) $n([expr $i+1]) 1Mb 10ms DropTail
+ $ns duplex-link-op $n($i) $n([expr $i+1]) orient right
+ $ns queue-limit $n($i) $n([expr $i+1]) 50
+}
+
+#Define a 'finish' procedure
+proc finish {} {
+	global f0 f1
+	#Close the output files
+	close $f0
+	close $f1
+	#Call xgraph to display the results
+	exec xgraph f0.tr f1.tr -geometry 800x400 &
+        exit 0
+}
+
+
+proc attach-expoo-traffic { node sink window_size size burst idle rate } {
+	#Get an instance of the simulator
+	set ns [Simulator instance]
+
+	#Create a UDP agent and attach it to the node
+	set source [new Agent/UDP]
+        $source set window_ window_size
+	$ns attach-agent $node $source
+
+	#Create an Expoo traffic agent and set its configuration parameters
+	set traffic [new Application/Traffic/Exponential]
+	$traffic set packetSize_ $size
+	$traffic set burst_time_ $burst
+	$traffic set idle_time_ $idle
+	$traffic set rate_ $rate
+        
+        # Attach traffic source to the traffic generator
+        $traffic attach-agent $source
+	#Connect the source and the sink
+	$ns connect $source $sink
+	return $traffic
+}
+
+
+#Define a procedure which periodically records the bandwidth received by the
+#three traffic sinks sink0/1/2 and writes it to the three files f0/1/2.
+proc record {} {
+        global sink0 sink1 sink2 f0 f1
+	#Get an instance of the simulator
+	set ns [Simulator instance]
+	#Set the time after which the procedure should be called again
+        set time 0.5
+	#How many bytes have been received by the traffic sinks?
+        set bw0 [$sink0 set bytes_]
+        set bw1 [$sink1 set bytes_]
+
+	#Get the current time
+        set now [$ns now]
+	#Calculate the bandwidth (in MBit/s) and write it to the files
+        puts $f0 "$now [expr $bw0/$time*8/1000000]"
+        puts $f1 "$now [expr $bw1/$time*8/1000000]"
+
+	#Reset the bytes_ values on the traffic sinks
+        $sink0 set bytes_ 0
+        $sink1 set bytes_ 0
+
+	#Re-schedule the procedure
+        $ns at [expr $now+$time] "record"
+}
+
+#Create three traffic sinks and attach them to the node n4
+set sink0 [new Agent/LossMonitor]
+set sink1 [new Agent/LossMonitor]
+
+$ns attach-agent $n(4) $sink0
+$ns attach-agent $n(3) $sink1
+
+#Create three traffic sources
+set source0 [attach-expoo-traffic $n(6) $sink0 8 1460 2s 1s 100k]
+set source1 [attach-expoo-traffic $n(2) $sink1 8 1460 2s 1s 300k]
+
+#Start logging the received bandwidth
+$ns at 0.0 "record"
+#Start the traffic sources
+$ns at 5.0 "$source0 start"
+$ns at 10.0 "$source1 start"
+
+#Stop the traffic sources
+$ns at 50.0 "$source0 stop"
+$ns at 50.0 "$source1 stop"
+
+#Call the finish procedure after 60 seconds simulation time
+$ns at 60.0 "finish"
+
+#Run the simulation
+$ns run
