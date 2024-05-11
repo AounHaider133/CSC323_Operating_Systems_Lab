@@ -1,0 +1,14 @@
+code.exe: 
+	gcc -o code.exe practice.o -L. -lmystaticlib
+
+practice.o: practice.c
+	gcc -c practice.c
+
+temp2.o: temp2.c
+	gcc -c temp2.c
+
+libmystaticlib.a: temp2.o
+	ar cr libmystaticlib.a temp2.o
+
+clean:
+	rm *.o libmystaticlib.a
