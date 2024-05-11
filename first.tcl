@@ -1,0 +1,38 @@
+#create simulator
+set ns [new Simulator]
+
+set nf [open out.nam w]
+$ns namtrace-all $nf
+
+proc finish {} {
+ global ns nf
+ $ns flush-trace
+ close $nf
+ exec nam out.nam &
+ return 0
+}
+
+set n0 [$ns node]
+set n1 [$ns node]
+
+$ns duplex-link $n0 $n1 1Mb 10ms DropTail
+
+#create a udp agent
+set udp0 [new Agent/UDP]
+$ns attach-agent $n0 $udp0
+
+set cbr [new Application/Traffic/CBR]
+$cbr set packetsize_ 500
+$cbr set interval_ 0.005
+$cbr attach-agent $udp0
+
+set null [new Agent/Null]
+$ns attach-agent $n1 $null
+
+$ns connect $udp0 $null
+
+$ns at 0.5 "$cbr start"
+$ns at 4.5 "$cbr stop"
+
+$ns at 5.0 "finish"
+$ns run
