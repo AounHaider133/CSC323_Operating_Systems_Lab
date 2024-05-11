@@ -1,21 +1,14 @@
-test: main.o libmystaticlib.a libmysharedlib.so
-	gcc -o test main.o -L. -lmystaticlib -Wl,-rpath=/home/nadeem/FA19/code/lib_test -lmysharedlib
+FA21_BSE_133.exe: q1.o libmystaticlib.a
+	gcc -o FA21_BSE_133.exe q1.o -L. -lmystaticlib
 
-main.o: main.c myheader.h
-	gcc -c main.c 
+q1.o: q1.c
+	gcc -c q1.c 
 
-f1.o: f1.c
-	gcc -c f1.c
+handler.o: handler.c
+	gcc -c handler.c
 
-f2.o: f2.c
-	gcc -c -fpic f2.c
-
-libmysharedlib.so: f2.o
-	gcc -shared -o libmysharedlib.so f2.o
-
-libmystaticlib.a: f1.o
-	ar cr libmystaticlib.a f1.o
+libmystaticlib.a: handler.o
+	ar cr libmystaticlib.a handler.o
 
 clean:
-	rm *.o libmystaticlib.a libmysharedlib.so
-
+	rm *.o libmystaticlib.a

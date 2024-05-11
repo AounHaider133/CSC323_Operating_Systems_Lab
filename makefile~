@@ -1,14 +1,14 @@
-code.exe: 
-	gcc -o code.exe practice.o -L. -lmystaticlib
+FA21_BSE_133.exe: q1.o libmystaticlib.a
+	gcc -o FA21_BSE_133.exe signal.o -L. -lmystaticlib
 
-practice.o: practice.c
-	gcc -c practice.c
+q1.o: q1.c
+	gcc -c q1.c 
 
-temp2.o: temp2.c
-	gcc -c temp2.c
+handler.o: handler.c
+	gcc -c handler.c
 
-libmystaticlib.a: temp2.o
-	ar cr libmystaticlib.a temp2.o
+libmystaticlib.a: handler.o
+	ar cr libmystaticlib.a handler.o
 
 clean:
 	rm *.o libmystaticlib.a
